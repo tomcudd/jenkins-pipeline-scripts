@@ -1,0 +1,32 @@
+node {
+  stage('git clone') {
+    git url: 'git@github.com:tomcudd/apache-config-examples.git'
+  }
+
+  stage('move configs around') {
+    sh '''#!/bin/bash
+    if [ -f /etc/httpd/conf.d/manual-config-example.conf ]; then
+      sudo mv /etc/httpd/conf.d/manual-config-example.conf /etc/httpd/conf.d/manual-config-example.bak
+    fi
+    sudo cp *.conf /etc/httpd/conf.d/
+    '''
+  }
+
+  stage('test config') {
+    sh '''#!/bin/bash
+    /usr/sbin/apachectl configtest
+    '''
+  }
+
+  stage('restart apache') {
+    sh '''#!/bin/bash
+    sudo /bin/systemctl restart httpd.service
+    '''
+  }
+
+  stage('test apache') {
+    sh '''#!/bin/bash
+    wget -O- http://centos7/jenkins
+    '''
+  }
+}
